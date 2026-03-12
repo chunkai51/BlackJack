@@ -82,16 +82,18 @@ class Game:
             return False
         self.player.balance -= bet
         self.player.bets[hand_index] += bet
-        # 加倍后只允许再拿一张牌
-        self.player.hands[hand_index].add_card(self.deck.draw())
-        print(f"已加倍，当前投注 {self.player.bets[hand_index]}")
+        # 加倍后只允许再拿一张牌，同时打印补到的牌与当前手牌
+        hand = self.player.hands[hand_index]
+        new_card = self.deck.draw()
+        hand.add_card(new_card)
+        print(f"已加倍，补到 {new_card}，当前手牌: {hand}，当前投注 {self.player.bets[hand_index]}")
         return True
 
     def player_turn(self, hand_index: int) -> None:
         # 处理玩家对单手牌的操作：要牌、停牌、分牌、加倍
         hand = self.player.hands[hand_index]
         while True:
-            print(f"玩家手牌 {hand_index + 1}: {hand}")
+            print(f"当前手牌: {hand}")
             if hand.is_blackjack():
                 print("Blackjack!")
                 return
@@ -173,17 +175,25 @@ class Game:
 
     def play_round(self) -> None:
         # CLI 单局流程：下注 -> 发牌 -> 保险 -> 玩家回合 -> 庄家回合 -> 结算
-        try:
-            bet = float(input("请输入本局下注金额: "))
-        except ValueError:
-            print("输入无效，默认下注 10") 
-            bet = 10.0
-        except EOFError:
-            print("未检测到输入，使用默认下注 10")
-            bet = 10.0
-        if bet <= 0 or bet > self.player.balance:
-            print("下注不合法，使用可用余额的一半作为下注")
-            bet = max(1.0, self.player.balance / 2)
+        while True:
+            try:
+                bet_input = input("请输入本局下注金额（输入 q 退出本局/游戏）: ").strip().lower()
+            except EOFError:
+                return "quit"
+            if bet_input == "q":
+                return "quit"
+            try:
+                bet = float(bet_input)
+            except ValueError:
+                print("输入无效，请重新输入数字。")
+                continue
+            if bet <= 0:
+                print("下注需大于 0，请重新输入。")
+                continue
+            if bet > self.player.balance:
+                print("余额不足，请重新输入不超过余额的下注。")
+                continue
+            break
 
         self.start_round(bet)
         print(f"你的余额: {self.player.balance}")
@@ -201,6 +211,7 @@ class Game:
             result = self.settle_hand(0)
             print(result)
             print(f"余额: {self.player.balance}")
+            print("-" * 40)
             return
 
         # 处理玩家所有手牌（分牌后可能多手）
@@ -216,6 +227,7 @@ class Game:
             for i in range(len(self.player.hands)):
                 print(self.settle_hand(i))
             print(f"余额: {self.player.balance}")
+            print("-" * 40)
             return
 
         # 庄家行动并结算
@@ -224,3 +236,4 @@ class Game:
         for i in range(len(self.player.hands)):
             print(self.settle_hand(i))
         print(f"余额: {self.player.balance}")
+        print("-" * 40)

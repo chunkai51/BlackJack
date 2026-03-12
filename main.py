@@ -17,20 +17,16 @@ def main() -> None:
         player_name = "Player"
 
     game = Game(player_name=player_name, deck_mode=mode)
-    print("欢迎来到 Blackjack！输入 q 退出，其他键继续。")
+    print("欢迎来到 Blackjack！下注时输入 q 可退出游戏。")
 
     while True:
-        try:
-            cmd = input("按回车开始新一局，或输入 q 退出: ").strip().lower()
-        except EOFError:
-            cmd = "q"
-        if cmd == "q":
-            print("感谢游玩，再见！")
-            break
         if game.player.balance <= 0:
             print("余额不足，游戏结束。")
             break
-        game.play_round()
+        result = game.play_round()
+        if result == "quit":
+            print("感谢游玩，再见！")
+            break
 
 
 if __name__ == "__main__":
