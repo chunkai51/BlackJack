@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import time
+
 from .deck import Deck
 from .player import Player
 from .dealer import Dealer
@@ -23,9 +25,17 @@ class Game:
         self.player.place_bet(bet, hand_index=0)
 
         # 开局发牌：玩家、庄家各两张
-        for _ in range(2):
-            self.player.hands[0].add_card(self.deck.draw())
-            self.dealer.hand.add_card(self.deck.draw())
+        for i in range(2):
+            card_p = self.deck.draw()
+            self.player.hands[0].add_card(card_p)
+            print(f"发给玩家第{i+1}张: {card_p}")
+            time.sleep(0.8)
+
+            card_d = self.deck.draw()
+            self.dealer.hand.add_card(card_d)
+            who = "庄家明牌" if i == 0 else "庄家底牌"
+            print(f"{who}: {card_d if i == 0 else '🂠'}")
+            time.sleep(0.8)
 
     def offer_insurance(self) -> bool:
         # 当庄家明牌为 A 时提供保险，返回是否购买
@@ -76,6 +86,13 @@ class Game:
 
     def handle_double(self, hand_index: int) -> bool:
         # 处理加倍逻辑，成功返回 True
+        hand = self.player.hands[hand_index]
+        if len(hand.cards) != 2:
+            print("加倍仅限起手两张时可用。")
+            return False
+        if hand.is_bust():
+            print("当前手牌已爆牌，无法加倍。")
+            return False
         bet = self.player.bets[hand_index]
         if bet > self.player.balance:
             print("余额不足，无法加倍")
@@ -83,7 +100,6 @@ class Game:
         self.player.balance -= bet
         self.player.bets[hand_index] += bet
         # 加倍后只允许再拿一张牌，同时打印补到的牌与当前手牌
-        hand = self.player.hands[hand_index]
         new_card = self.deck.draw()
         hand.add_card(new_card)
         print(f"已加倍，补到 {new_card}，当前手牌: {hand}，当前投注 {self.player.bets[hand_index]}")

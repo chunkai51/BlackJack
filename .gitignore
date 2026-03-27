@@ -1,15 +1,4 @@
-# macOS 与 Python 常用忽略
-.DS_Store
+# 避免提交本地敏感配置
+config.py
 __pycache__/
-*.py[cod]
-*.log
-
-# 虚拟环境
-venv/
-.venv/
-env/
-
-# 编辑器/工具
-.idea/
-.vscode/
-
+*.pyc
